@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 using DungeonOfAlgorithms.Source.Entities;
 
 namespace DungeonOfAlgorithms.Source.Core;
@@ -18,6 +19,7 @@ public class Game1 : Game
     private SpriteFont _font;
     private KeyboardState _lastKeyboardState;
     private System.Collections.Generic.Dictionary<string, Texture2D> _playerTextures;
+    private Texture2D _vignetteTexture;
 
     public Game1()
     {
@@ -40,43 +42,55 @@ public class Game1 : Game
         // Load Tileset
         var tilesetTexture = Content.Load<Texture2D>("Tiles/Tileset");
 
-        // --- Create Room 1 from Tiled CSV ---
+        // --- Create Room 1 (The Stack) ---
         int[,] map1 = DungeonManager.Instance.LoadMapFromCSV("Content/Maps/Room_01.csv");
         var room1 = new Room(1, new Tilemap(tilesetTexture, map1, 16, 16));
 
-        // --- Create Room 2 from Tiled CSV ---
+        // --- Create Room 2 (The Heap) ---
         int[,] map2 = DungeonManager.Instance.LoadMapFromCSV("Content/Maps/Room_02.csv");
         var room2 = new Room(2, new Tilemap(tilesetTexture, map2, 16, 16));
 
+        // --- Create Room 3 (Kernel Panic) ---
+        int[,] map3 = DungeonManager.Instance.LoadMapFromCSV("Content/Maps/Room_03.csv");
+        var room3 = new Room(3, new Tilemap(tilesetTexture, map3, 16, 16));
+
         // --- Connect Rooms (Graph Edges) ---
         // Room 1 (East) -> Room 2
-        room1.Connect("East", 2);
-        // Room 2 (West) -> Room 1
+        room1.Connect("East", 2); 
+        // Room 2 (West) -> Room 1, (East) -> Room 3
         room2.Connect("West", 1);
+        room2.Connect("East", 3);
+        // Room 3 (West) -> Room 2
+        room3.Connect("West", 2);
 
-        // --- Add Items (Factory Pattern) ---
+        // --- Add Items ---
         ItemFactory.Initialize(Content);
-        
-        // Spawn Coins in Room 1
-        room1.AddItem(ItemFactory.CreateItem("Coin", new Vector2(200, 200)));
-        room1.AddItem(ItemFactory.CreateItem("Coin", new Vector2(250, 200)));
-        room1.AddItem(ItemFactory.CreateItem("Coin", new Vector2(300, 200)));
+        room1.AddItem(ItemFactory.CreateItem("Coin", new Vector2(80, 80))); // Hint
+        room2.AddItem(ItemFactory.CreateItem("Coin", new Vector2(100, 100)));
 
-        // --- Add Enemies (Strategy Pattern) ---
+        // --- Add Enemies ---
         EnemyFactory.Initialize(Content);
 
-        // Room 1: Slime (Patrols)
-        room1.AddEnemy(EnemyFactory.CreateEnemy("Slime", new Vector2(150, 150)));
+        // Room 1: Patrol Slimes (Safe spots - Left side)
+        room1.AddEnemy(EnemyFactory.CreateEnemy("Slime", new Vector2(32, 50)));
+        room1.AddEnemy(EnemyFactory.CreateEnemy("Slime", new Vector2(32, 120)));
 
-        // Room 2: Ghost (Chases)
-        room2.AddEnemy(EnemyFactory.CreateEnemy("Ghost", new Vector2(200, 200)));
+        // Room 2: Ghosts (Fast)
+        room2.AddEnemy(EnemyFactory.CreateEnemy("Ghost", new Vector2(150, 50)));
+        room2.AddEnemy(EnemyFactory.CreateEnemy("Ghost", new Vector2(150, 150)));
         
-        // Room 2: Victory Chest!
-        room2.AddItem(ItemFactory.CreateItem("Chest", new Vector2(150, 100)));
+        // Room 3: Boss? For now a bunch of Ghosts guarding the chest
+        room3.AddEnemy(EnemyFactory.CreateEnemy("Ghost", new Vector2(100, 80)));
+        room3.AddEnemy(EnemyFactory.CreateEnemy("Ghost", new Vector2(150, 80)));
+        room3.AddEnemy(EnemyFactory.CreateEnemy("Ghost", new Vector2(200, 80)));
+        
+        // Room 3: Victory Chest!
+        room3.AddItem(ItemFactory.CreateItem("Chest", new Vector2(200, 100)));
 
         // Setup Manager
         DungeonManager.Instance.AddRoom(room1);
         DungeonManager.Instance.AddRoom(room2);
+        DungeonManager.Instance.AddRoom(room3);
         DungeonManager.Instance.ChangeRoom(1);
 
 
@@ -92,12 +106,31 @@ public class Game1 : Game
         };
         // _playerTexture = playerTextures["Down"]; // Default for ref, but unused by new constructor
 
-        // Instantiate Player
-        _player = new Player(_playerTextures, new Vector2(100, 100));
+        // Instantiate Player (Spawn at safe location in imported Room 1)
+        _player = new Player(_playerTextures, new Vector2(50, 80));
         
         // Load Font and Create HUD
         _font = Content.Load<SpriteFont>("Fonts/GameFont");
         _hud = new HUD(_font);
+        
+        // --- Atmosphere: Generate Vignette Texture ---
+        _vignetteTexture = new Texture2D(GraphicsDevice, 800, 600);
+        Color[] data = new Color[800 * 600];
+        Vector2 center = new Vector2(400, 300);
+        float maxDist = Vector2.Distance(center, Vector2.Zero);
+        
+        for (int i = 0; i < data.Length; i++)
+        {
+            int x = i % 800;
+            int y = i / 800;
+            float dist = Vector2.Distance(new Vector2(x, y), center);
+            float factor = dist / maxDist;
+            factor = (float)Math.Pow(factor, 2.0); // Non-linear fade
+            
+            // Dark vignette
+            data[i] = Color.Black * Math.Min(factor * 1.8f, 0.85f);
+        }
+        _vignetteTexture.SetData(data);
         
         _gameState = GameState.MainMenu;
     }
@@ -272,24 +305,29 @@ public class Game1 : Game
         // Draw HUD (no camera transform - screen space)
         _spriteBatch.Begin();
         
+        // Draw Vignette (Atmosphere)
+        if (_vignetteTexture != null)
+             _spriteBatch.Draw(_vignetteTexture, Vector2.Zero, Color.White);
+
         if (_gameState == GameState.MainMenu)
         {
-            _spriteBatch.DrawString(_font, "DUNGEON OF ALGORITHMS", new Vector2(200, 150), Color.Gold);
-            _spriteBatch.DrawString(_font, "Press ENTER to Start", new Vector2(220, 200), Color.White);
-            _spriteBatch.DrawString(_font, "WASD to Move | F5 Save | F9 Load", new Vector2(180, 250), Color.Gray);
+            DrawShadowString(_font, "DUNGEON OF ALGORITHMS", new Vector2(200, 150), Color.Gold);
+            DrawShadowString(_font, "The Memory Leak Chronicle", new Vector2(250, 180), Color.LightGreen); // Subtitle
+            DrawShadowString(_font, "Press ENTER to Start Debugging", new Vector2(220, 300), Color.White);
+            DrawShadowString(_font, "WASD to Move | F5 Save | F9 Load", new Vector2(180, 500), Color.Gray);
         }
         else if (_gameState == GameState.GameOver)
         {
-            _spriteBatch.DrawString(_font, "GAME OVER", new Vector2(280, 180), Color.Red);
-            _spriteBatch.DrawString(_font, $"Final Score: {_player.Score}", new Vector2(260, 220), Color.White);
-            _spriteBatch.DrawString(_font, "Press R to Restart", new Vector2(250, 260), Color.Gray);
+            DrawShadowString(_font, "KERNEL PANIC (GAME OVER)", new Vector2(260, 180), Color.Red);
+            DrawShadowString(_font, $"Leaked Objects Cleaned: {_player.Score}", new Vector2(260, 220), Color.White);
+            DrawShadowString(_font, "Press R to Reboot System", new Vector2(250, 260), Color.Gray);
         }
         else if (_gameState == GameState.Victory)
         {
-            _spriteBatch.DrawString(_font, "VICTORY!", new Vector2(300, 150), Color.Gold);
-            _spriteBatch.DrawString(_font, "You found the Treasure!", new Vector2(200, 200), Color.White);
-            _spriteBatch.DrawString(_font, $"Final Score: {_player.Score}", new Vector2(260, 250), Color.White);
-            _spriteBatch.DrawString(_font, "Press R to Reset", new Vector2(260, 300), Color.Gray);
+            DrawShadowString(_font, "SYSTEM RESTORED (VICTORY!)", new Vector2(260, 150), Color.Gold);
+            DrawShadowString(_font, "You patched the memory leak!", new Vector2(240, 200), Color.White);
+            DrawShadowString(_font, $"Final Score: {_player.Score}", new Vector2(260, 250), Color.White);
+            DrawShadowString(_font, "Press R to Reboot", new Vector2(320, 300), Color.Gray);
         }
         else
         {
@@ -299,5 +337,11 @@ public class Game1 : Game
         _spriteBatch.End();
 
         base.Draw(gameTime);
+    }
+
+    private void DrawShadowString(SpriteFont font, string text, Vector2 position, Color color)
+    {
+        _spriteBatch.DrawString(font, text, position + new Vector2(1, 1), Color.Black);
+        _spriteBatch.DrawString(font, text, position, color);
     }
 }

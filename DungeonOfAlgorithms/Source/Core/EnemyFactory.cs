@@ -9,7 +9,8 @@ namespace DungeonOfAlgorithms.Source.Core;
 public static class EnemyFactory
 {
     private static ContentManager _content;
-    private static Dictionary<string, Texture2D> _textures = new();
+    private static Dictionary<string, Dictionary<string, Texture2D>> _enemyTextures = new();
+    private static int _nextId = 0;
 
     public static void Initialize(ContentManager content)
     {
@@ -18,19 +19,41 @@ public static class EnemyFactory
 
     public static Enemy CreateEnemy(string type, Vector2 position)
     {
-        if (!_textures.ContainsKey("Ghost")) _textures["Ghost"] = _content.Load<Texture2D>("Enemies/Ghost");
-        if (!_textures.ContainsKey("Slime")) _textures["Slime"] = _content.Load<Texture2D>("Enemies/Slime");
-
-        switch (type)
+        if (!_enemyTextures.ContainsKey(type))
         {
-            case "Ghost":
-                // Ghosts Chase
-                return new Enemy(1, _textures["Ghost"], position, new ChaseBehavior());
-            case "Slime":
-                // Slimes Patrol
-                return new Enemy(2, _textures["Slime"], position, new PatrolBehavior());
-            default:
-                return null;
+            _enemyTextures[type] = LoadEnemyTextures(type);
         }
+
+        IEnemyBehavior behavior;
+        // Simple Logic for Behavior based on type
+        if (type == "Ghost") behavior = new ChaseBehavior();
+        else behavior = new PatrolBehavior();
+
+        return new Enemy(_nextId++, _enemyTextures[type], position, behavior);
+    }
+    
+    private static Dictionary<string, Texture2D> LoadEnemyTextures(string type)
+    {
+        var dict = new Dictionary<string, Texture2D>();
+        
+        string[] keys = { "Down", "Up", "Side", "Down_Idle", "Up_Idle", "Side_Idle" };
+        string[] folderNames = { "D_Walk", "U_Walk", "S_Walk", "D_Idle", "U_Idle", "S_Idle" };
+        
+        for (int i = 0; i < keys.Length; i++)
+        {
+             // e.g. Enemies/Slime/D_Walk
+             string path = $"Enemies/{type}/{folderNames[i]}";
+             try
+             {
+                dict[keys[i]] = _content.Load<Texture2D>(path);
+             }
+             catch
+             {
+                // Fallback for missing assets (safety)
+                System.Console.WriteLine($"Missing asset: {path}");
+             }
+        }
+        
+        return dict;
     }
 }

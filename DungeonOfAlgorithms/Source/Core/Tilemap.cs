@@ -13,8 +13,16 @@ public class Tilemap
     private readonly int _tileHeight;
     private readonly int _tilesPerRow;
     
-    // Solid tile indices (walls, obstacles) - customize based on your tileset
-    private static readonly HashSet<int> SolidTiles = new() { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }; // First row usually walls
+    // Solid tile indices (walls, obstacles) - Updating based on user feedback
+    private static readonly HashSet<int> SolidTiles = new() 
+    { 
+        96, 97, 98, 99, 100, 
+        77, 58, 39, 
+        20, 21, 22, 23, 24, 
+        43, 62, 81, 
+        26, 45, 
+        172, 173, 174 
+    };
     
     // Door tile indices - tiles that trigger room transitions
     // 99 = East door, 98 = West door, 97 = North door, 96 = South door (example indices)

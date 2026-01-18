@@ -1,0 +1,10 @@
+[Bb]in/
+[Oo]bj/
+.vs/
+.vscode/
+.DS_Store
+*.user
+*.suo
+Content/bin/
+Content/obj/
+TestResults/
