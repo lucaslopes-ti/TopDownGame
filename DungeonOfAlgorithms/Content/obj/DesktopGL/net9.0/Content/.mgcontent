@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SourceFileCollection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Profile>Reach</Profile>
+  <Platform>DesktopGL</Platform>
+  <Config />
+  <SourceFiles>
+    <File>/Users/lucaslopes/Library/Mobile Documents/com~apple~CloudDocs/TopDownGame/DungeonOfAlgorithms/Content/Tiles/Tileset.png</File>
+    <File>/Users/lucaslopes/Library/Mobile Documents/com~apple~CloudDocs/TopDownGame/DungeonOfAlgorithms/Content/Items/Coin.png</File>
+    <File>/Users/lucaslopes/Library/Mobile Documents/com~apple~CloudDocs/TopDownGame/DungeonOfAlgorithms/Content/Enemies/Ghost.png</File>
+    <File>/Users/lucaslopes/Library/Mobile Documents/com~apple~CloudDocs/TopDownGame/DungeonOfAlgorithms/Content/Enemies/Slime.png</File>
+    <File>/Users/lucaslopes/Library/Mobile Documents/com~apple~CloudDocs/TopDownGame/DungeonOfAlgorithms/Content/Items/Chest.png</File>
+    <File>/Users/lucaslopes/Library/Mobile Documents/com~apple~CloudDocs/TopDownGame/DungeonOfAlgorithms/Content/Fonts/GameFont.spritefont</File>
+    <File>/Users/lucaslopes/Library/Mobile Documents/com~apple~CloudDocs/TopDownGame/DungeonOfAlgorithms/Content/Player/Player_Down.png</File>
+    <File>/Users/lucaslopes/Library/Mobile Documents/com~apple~CloudDocs/TopDownGame/DungeonOfAlgorithms/Content/Player/Player_Side.png</File>
+    <File>/Users/lucaslopes/Library/Mobile Documents/com~apple~CloudDocs/TopDownGame/DungeonOfAlgorithms/Content/Player/Player_Up.png</File>
+    <File>/Users/lucaslopes/Library/Mobile Documents/com~apple~CloudDocs/TopDownGame/DungeonOfAlgorithms/Content/Player/Player_Down_Idle.png</File>
+    <File>/Users/lucaslopes/Library/Mobile Documents/com~apple~CloudDocs/TopDownGame/DungeonOfAlgorithms/Content/Player/Player_Side_Idle.png</File>
+    <File>/Users/lucaslopes/Library/Mobile Documents/com~apple~CloudDocs/TopDownGame/DungeonOfAlgorithms/Content/Player/Player_Up_Idle.png</File>
+  </SourceFiles>
+  <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+  </DestFiles>
+</SourceFileCollection>
