@@ -11,7 +11,12 @@ public class InputManager
     private KeyboardState _currentKeyboardState;
     private KeyboardState _previousKeyboardState;
 
-    private InputManager() { }
+    private InputManager()
+    {
+        // Inicializa os estados para evitar leituras inconsistentes no primeiro Update
+        _currentKeyboardState = Keyboard.GetState();
+        _previousKeyboardState = _currentKeyboardState;
+    }
 
     public void Update()
     {
@@ -38,8 +43,21 @@ public class InputManager
         return direction;
     }
 
+    // Retorna true apenas no frame em que a tecla passou de Up -> Down
+    public bool IsKeyPressed(Keys key)
+    {
+        return _currentKeyboardState.IsKeyDown(key) && _previousKeyboardState.IsKeyUp(key);
+    }
+
+    // Retorna true enquanto a tecla estiver pressionada
+    public bool IsKeyDown(Keys key)
+    {
+        return _currentKeyboardState.IsKeyDown(key);
+    }
+
+    // Compatível com uso anterior — agora baseado em IsKeyPressed
     public bool IsActionPressed()
     {
-        return _currentKeyboardState.IsKeyDown(Keys.Space) && _previousKeyboardState.IsKeyUp(Keys.Space);
+        return IsKeyPressed(Keys.Space);
     }
 }
