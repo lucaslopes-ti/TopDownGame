@@ -8,3 +8,8 @@
 Content/bin/
 Content/obj/
 TestResults/
+
+# Private tutorials (local only - not pushed to GitHub)
+_private/
+_tutorials/
+*.private.md
