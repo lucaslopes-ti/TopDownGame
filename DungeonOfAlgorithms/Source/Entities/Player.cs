@@ -8,7 +8,7 @@ namespace DungeonOfAlgorithms.Source.Entities;
 public class Player : IGameEntity
 {
     public Vector2 Position { get; private set; }
-    public float Speed { get; set; } = 200f;
+    public float Speed { get; set; } = 100f;
     public int Health { get; private set; } = 100;
     public int Score { get; private set; } = 0;
     public bool IsAlive => Health > 0;
@@ -28,11 +28,13 @@ public class Player : IGameEntity
     // Frame Control
     private const int FRAME_WIDTH = 32;
     private const int FRAME_HEIGHT = 32;
-    private const int FRAME_COUNT = 4; // Idle usually has fewer frames, but sprite sheets are 4 frames here
-    private const float FRAME_TIME = 0.15f; 
+    private const int IDLE_FRAME_COUNT = 4;
+    private const int MOVE_FRAME_COUNT = 6;
+    private const float FRAME_TIME = 0.15f;
     private int _currentFrame = 0;
     private float _frameTimer = 0f;
     private bool _isMoving = false;
+    private bool _wasMoving = false;
 
     public Rectangle Bounds => new Rectangle((int)Position.X + 8, (int)Position.Y + 16, 16, 16);
 
@@ -110,11 +112,20 @@ public class Player : IGameEntity
         }
 
         // Update Frame Timer
+        // Reset frame when changing state
+        if (_isMoving != _wasMoving)
+        {
+            _currentFrame = 0;
+            _frameTimer = 0f;
+            _wasMoving = _isMoving;
+        }
+        
+        int frameCount = _isMoving ? MOVE_FRAME_COUNT : IDLE_FRAME_COUNT;
         _frameTimer += deltaTime;
         if (_frameTimer >= FRAME_TIME)
         {
             _frameTimer = 0f;
-            _currentFrame = (_currentFrame + 1) % FRAME_COUNT;
+            _currentFrame = (_currentFrame + 1) % frameCount;
         }
 
         // --- Movement Logic ---

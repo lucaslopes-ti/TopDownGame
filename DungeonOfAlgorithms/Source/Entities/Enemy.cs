@@ -9,7 +9,7 @@ namespace DungeonOfAlgorithms.Source.Entities;
 public class Enemy : IGameEntity
 {
     public int Id { get; private set; }
-    public Vector2 Position { get; set; } // Public set for Behavior to modify
+    public Vector2 Position { get; set; }
     public float Speed { get; set; } = 50f;
     public int Damage { get; set; } = 10;
     
@@ -54,12 +54,18 @@ public class Enemy : IGameEntity
         // Default impl
     }
     
-    // Overload Update to accept Player
-    public void Update(GameTime gameTime, Player player)
+    // Overload Update to accept Player and Tilemap for wall collision
+    public void Update(GameTime gameTime, Player player, Tilemap tilemap = null)
     {
         Vector2 prevPos = Position;
         
         _behavior.Update(this, player, gameTime);
+        
+        // Check wall collision - revert if hitting a wall
+        if (tilemap != null && tilemap.IsColliding(Bounds))
+        {
+            Position = prevPos;
+        }
         
         Vector2 delta = Position - prevPos;
         _isMoving = delta.LengthSquared() > 0.0001f;
@@ -90,7 +96,6 @@ public class Enemy : IGameEntity
         switch (_facing)
         {
             case FaceDirection.Down:
-                // If key doesn't exist, fallback to available
                 _currentAnimation = _textures.ContainsKey("Down" + suffix) ? "Down" + suffix : "Down";
                 break;
             case FaceDirection.Up:
@@ -111,7 +116,7 @@ public class Enemy : IGameEntity
         {
             _timer = 0;
             _currentFrame++;
-            if (_currentFrame >= 6) // Verified 192px width / 32px = 6 frames
+            if (_currentFrame >= 6) 
                 _currentFrame = 0;
         }
     }

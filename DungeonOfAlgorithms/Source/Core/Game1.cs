@@ -20,6 +20,15 @@ public class Game1 : Game
     private KeyboardState _lastKeyboardState;
     private System.Collections.Generic.Dictionary<string, Texture2D> _playerTextures;
     private Texture2D _vignetteTexture;
+    
+    // Room transition effect
+    private Texture2D _fadeTexture;
+    private float _fadeAlpha = 0f;
+    private bool _isFading = false;
+    private bool _fadeOut = true; // true = fading to black, false = fading from black
+    private const float FADE_SPEED = 3f;
+    private int _pendingRoom = -1;
+    private Vector2 _pendingSpawnPosition;
 
     public Game1()
     {
@@ -65,29 +74,70 @@ public class Game1 : Game
 
         // --- Add Items ---
         ItemFactory.Initialize(Content);
-        room1.AddItem(ItemFactory.CreateItem("Coin", new Vector2(80, 80))); // Hint
+        // Room 1 - Coins scattered
+        room1.AddItem(ItemFactory.CreateItem("Coin", new Vector2(80, 80)));
+        room1.AddItem(ItemFactory.CreateItem("Coin", new Vector2(150, 150)));
+        room1.AddItem(ItemFactory.CreateItem("Coin", new Vector2(300, 100)));
+        room1.AddItem(ItemFactory.CreateItem("Coin", new Vector2(200, 200)));
+        room1.AddItem(ItemFactory.CreateItem("Coin", new Vector2(400, 150)));
+        
+        // Room 2 - More coins
         room2.AddItem(ItemFactory.CreateItem("Coin", new Vector2(100, 100)));
+        room2.AddItem(ItemFactory.CreateItem("Coin", new Vector2(200, 150)));
+        room2.AddItem(ItemFactory.CreateItem("Coin", new Vector2(350, 200)));
+        room2.AddItem(ItemFactory.CreateItem("Coin", new Vector2(150, 250)));
+        room2.AddItem(ItemFactory.CreateItem("Coin", new Vector2(400, 100)));
+        
+        // Room 3 - Treasure room with many coins
+        room3.AddItem(ItemFactory.CreateItem("Coin", new Vector2(100, 150)));
+        room3.AddItem(ItemFactory.CreateItem("Coin", new Vector2(150, 200)));
+        room3.AddItem(ItemFactory.CreateItem("Coin", new Vector2(200, 250)));
+        room3.AddItem(ItemFactory.CreateItem("Coin", new Vector2(250, 150)));
+        room3.AddItem(ItemFactory.CreateItem("Coin", new Vector2(300, 200)));
 
         // --- Add Enemies ---
         EnemyFactory.Initialize(Content);
 
-        // Room 1: Patrol Slimes (Safe spots - Left side)
-        room1.AddEnemy(EnemyFactory.CreateEnemy("Slime", new Vector2(32, 50)));
-        room1.AddEnemy(EnemyFactory.CreateEnemy("Slime", new Vector2(32, 120)));
+        // Room 1: Patrol Slimes - positioned inside the walkable area (right side of room)
+        room1.AddEnemy(EnemyFactory.CreateEnemy("Slime", new Vector2(350, 270)));
+        room1.AddEnemy(EnemyFactory.CreateEnemy("Slime", new Vector2(400, 200)));
 
-        // Room 2: Ghosts (Fast)
-        room2.AddEnemy(EnemyFactory.CreateEnemy("Ghost", new Vector2(150, 50)));
-        room2.AddEnemy(EnemyFactory.CreateEnemy("Ghost", new Vector2(150, 150)));
+        // Room 2: Ghosts (Fast) - positioned in walkable areas
+        room2.AddEnemy(EnemyFactory.CreateEnemy("Ghost", new Vector2(200, 200)));
+        room2.AddEnemy(EnemyFactory.CreateEnemy("Ghost", new Vector2(350, 150)));
         
-        // Room 3: Boss? For now a bunch of Ghosts guarding the chest
-        room3.AddEnemy(EnemyFactory.CreateEnemy("Ghost", new Vector2(100, 80)));
-        room3.AddEnemy(EnemyFactory.CreateEnemy("Ghost", new Vector2(150, 80)));
-        room3.AddEnemy(EnemyFactory.CreateEnemy("Ghost", new Vector2(200, 80)));
+        // Room 3: Ghosts guarding the chest
+        room3.AddEnemy(EnemyFactory.CreateEnemy("Ghost", new Vector2(150, 200)));
+        room3.AddEnemy(EnemyFactory.CreateEnemy("Ghost", new Vector2(200, 200)));
+        room3.AddEnemy(EnemyFactory.CreateEnemy("Ghost", new Vector2(250, 200)));
         
         // Room 3: Victory Chest!
-        room3.AddItem(ItemFactory.CreateItem("Chest", new Vector2(200, 100)));
+        room3.AddItem(ItemFactory.CreateItem("Chest", new Vector2(200, 250)));
 
-        // Setup Manager
+        // --- Add Decor Objects ---
+        var objectsTexture = Content.Load<Texture2D>("Items/Objects");
+        
+        // Objects.png sprite mappings (16x16 tiles):
+        // Crate: (0,0), Barrel: (0,16), Box: (16,0), Pot: (32,0)
+        
+        // Room 1 - Objects in walkable area (right portion of map)
+        room1.AddDecor(new DecorObject(objectsTexture, new Vector2(320, 280), new Rectangle(0, 0, 16, 16)));
+        room1.AddDecor(new DecorObject(objectsTexture, new Vector2(340, 280), new Rectangle(0, 0, 16, 16)));
+        room1.AddDecor(new DecorObject(objectsTexture, new Vector2(420, 270), new Rectangle(0, 16, 16, 16)));
+        room1.AddDecor(new DecorObject(objectsTexture, new Vector2(440, 270), new Rectangle(0, 16, 16, 16)));
+        
+        // Room 2 - Spread around walkable floor
+        room2.AddDecor(new DecorObject(objectsTexture, new Vector2(100, 280), new Rectangle(0, 0, 16, 16)));
+        room2.AddDecor(new DecorObject(objectsTexture, new Vector2(300, 280), new Rectangle(16, 0, 16, 16)));
+        room2.AddDecor(new DecorObject(objectsTexture, new Vector2(400, 280), new Rectangle(0, 16, 16, 16)));
+        
+        // Room 3 - Treasure room with barrels and crates
+        room3.AddDecor(new DecorObject(objectsTexture, new Vector2(100, 280), new Rectangle(0, 16, 16, 16)));
+        room3.AddDecor(new DecorObject(objectsTexture, new Vector2(120, 280), new Rectangle(0, 16, 16, 16)));
+        room3.AddDecor(new DecorObject(objectsTexture, new Vector2(300, 280), new Rectangle(0, 0, 16, 16)));
+        room3.AddDecor(new DecorObject(objectsTexture, new Vector2(320, 280), new Rectangle(0, 0, 16, 16)));
+
+
         DungeonManager.Instance.AddRoom(room1);
         DungeonManager.Instance.AddRoom(room2);
         DungeonManager.Instance.AddRoom(room3);
@@ -131,6 +181,10 @@ public class Game1 : Game
             data[i] = Color.Black * Math.Min(factor * 1.8f, 0.85f);
         }
         _vignetteTexture.SetData(data);
+        
+        // Create fade texture (solid black)
+        _fadeTexture = new Texture2D(GraphicsDevice, 1, 1);
+        _fadeTexture.SetData(new[] { Color.Black });
         
         _gameState = GameState.MainMenu;
     }
@@ -194,7 +248,16 @@ public class Game1 : Game
 
         // Playing state
         var tilemap = DungeonManager.Instance.CurrentRoom.Tilemap;
+        var currentRoom = DungeonManager.Instance.CurrentRoom;
+        
+        Vector2 prevPosition = _player.Position;
         _player.Update(gameTime, tilemap);
+        
+        // Check collision with decor objects and push back if needed
+        if (currentRoom.IsCollidingWithDecor(_player.Bounds))
+        {
+            _player.SetPosition(prevPosition);
+        }
         
         // Check if player died
         if (!_player.IsAlive)
@@ -215,8 +278,46 @@ public class Game1 : Game
         // DEBUG: Show position in Title
         Window.Title = $"HP: {_player.Health} | Score: {_player.Score} | Room: {DungeonManager.Instance.CurrentRoom.Id}";
 
+        // --- Fade Transition Logic ---
+        float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        
+        if (_isFading)
+        {
+            if (_fadeOut)
+            {
+                // Fading to black
+                _fadeAlpha += FADE_SPEED * deltaTime;
+                if (_fadeAlpha >= 1f)
+                {
+                    _fadeAlpha = 1f;
+                    // Now change the room
+                    if (_pendingRoom >= 0)
+                    {
+                        DungeonManager.Instance.ChangeRoom(_pendingRoom);
+                        _player.SetPosition(_pendingSpawnPosition);
+                        System.Console.WriteLine($"Transição para Room {_pendingRoom}");
+                        _pendingRoom = -1;
+                    }
+                    _fadeOut = false; // Start fading in
+                }
+            }
+            else
+            {
+                // Fading from black
+                _fadeAlpha -= FADE_SPEED * deltaTime;
+                if (_fadeAlpha <= 0f)
+                {
+                    _fadeAlpha = 0f;
+                    _isFading = false;
+                    _fadeOut = true; // Reset for next transition
+                }
+            }
+            // Skip normal update during fade
+            base.Update(gameTime);
+            return;
+        }
+
         // Check Room Transition (use tilemap dimensions)
-        var currentRoom = DungeonManager.Instance.CurrentRoom;
         int mapWidth = currentRoom.Tilemap.MapWidth;
         int mapHeight = currentRoom.Tilemap.MapHeight;
 
@@ -225,38 +326,43 @@ public class Game1 : Game
         int playerCenterY = (int)(_player.Position.Y + 8);
         int tileUnderPlayer = currentRoom.Tilemap.GetTileAt(playerCenterX, playerCenterY);
         
-        // Door transitions
-        if (tileUnderPlayer == Tilemap.DoorEast && currentRoom.Connections.ContainsKey("East"))
-        {
-            DungeonManager.Instance.ChangeRoom(currentRoom.Connections["East"]);
-            _player.SetPosition(new Vector2(32, _player.Position.Y)); // Spawn near west side of new room
-        }
-        else if (tileUnderPlayer == Tilemap.DoorWest && currentRoom.Connections.ContainsKey("West"))
-        {
-            DungeonManager.Instance.ChangeRoom(currentRoom.Connections["West"]);
-            _player.SetPosition(new Vector2(mapWidth - 48, _player.Position.Y)); // Spawn near east side
-        }
-        else if (tileUnderPlayer == Tilemap.DoorNorth && currentRoom.Connections.ContainsKey("North"))
-        {
-            DungeonManager.Instance.ChangeRoom(currentRoom.Connections["North"]);
-            _player.SetPosition(new Vector2(_player.Position.X, mapHeight - 48));
-        }
-        else if (tileUnderPlayer == Tilemap.DoorSouth && currentRoom.Connections.ContainsKey("South"))
-        {
-            DungeonManager.Instance.ChangeRoom(currentRoom.Connections["South"]);
-            _player.SetPosition(new Vector2(_player.Position.X, 32));
-        }
+        // Door transitions - trigger when player walks on empty tile (-1) near an edge
+        // This makes openings in the walls act as doors
+        bool isOnEmptyTile = tileUnderPlayer == -1;
+        bool nearEastEdge = _player.Position.X >= mapWidth - 48;
+        bool nearWestEdge = _player.Position.X <= 32;
+        bool nearNorthEdge = _player.Position.Y <= 32;
+        bool nearSouthEdge = _player.Position.Y >= mapHeight - 48;
         
-        // --- Fallback: Edge-based Transitions (if map triggers fail) ---
-        if (_player.Position.X >= mapWidth - 32 && currentRoom.Connections.ContainsKey("East"))
+        if (isOnEmptyTile && nearEastEdge && currentRoom.Connections.ContainsKey("East") && !_isFading)
         {
-             DungeonManager.Instance.ChangeRoom(currentRoom.Connections["East"]);
-             _player.SetPosition(new Vector2(50, _player.Position.Y));
+            _pendingRoom = currentRoom.Connections["East"];
+            // Room 3 needs lower Y spawn position
+            float spawnY = _pendingRoom == 3 ? 200 : _player.Position.Y;
+            _pendingSpawnPosition = new Vector2(80, spawnY);
+            _isFading = true;
+            _fadeOut = true;
         }
-        else if (_player.Position.X <= 0 && currentRoom.Connections.ContainsKey("West"))
+        else if (isOnEmptyTile && nearWestEdge && currentRoom.Connections.ContainsKey("West") && !_isFading)
         {
-             DungeonManager.Instance.ChangeRoom(currentRoom.Connections["West"]);
-             _player.SetPosition(new Vector2(mapWidth - 50, _player.Position.Y));
+            _pendingRoom = currentRoom.Connections["West"];
+            _pendingSpawnPosition = new Vector2(mapWidth - 100, _player.Position.Y);
+            _isFading = true;
+            _fadeOut = true;
+        }
+        else if (isOnEmptyTile && nearNorthEdge && currentRoom.Connections.ContainsKey("North") && !_isFading)
+        {
+            _pendingRoom = currentRoom.Connections["North"];
+            _pendingSpawnPosition = new Vector2(_player.Position.X, mapHeight - 100);
+            _isFading = true;
+            _fadeOut = true;
+        }
+        else if (isOnEmptyTile && nearSouthEdge && currentRoom.Connections.ContainsKey("South") && !_isFading)
+        {
+            _pendingRoom = currentRoom.Connections["South"];
+            _pendingSpawnPosition = new Vector2(_player.Position.X, 80);
+            _isFading = true;
+            _fadeOut = true;
         }
         
         try
@@ -335,6 +441,14 @@ public class Game1 : Game
         }
         
         _spriteBatch.End();
+        
+        // Draw fade overlay (on top of everything)
+        if (_fadeAlpha > 0)
+        {
+            _spriteBatch.Begin();
+            _spriteBatch.Draw(_fadeTexture, new Rectangle(0, 0, 800, 600), Color.White * _fadeAlpha);
+            _spriteBatch.End();
+        }
 
         base.Draw(gameTime);
     }

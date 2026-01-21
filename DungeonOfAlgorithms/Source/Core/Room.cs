@@ -15,6 +15,7 @@ public class Room
     
     public List<Item> Items { get; private set; } = new();
     public List<Enemy> Enemies { get; private set; } = new();
+    public List<DecorObject> DecorObjects { get; private set; } = new();
 
     public Room(int id, Tilemap tilemap)
     {
@@ -38,6 +39,22 @@ public class Room
         Enemies.Add(enemy);
     }
     
+    public void AddDecor(DecorObject decor)
+    {
+        DecorObjects.Add(decor);
+    }
+    
+    // Check if bounds collide with any decor object
+    public bool IsCollidingWithDecor(Rectangle bounds)
+    {
+        foreach (var decor in DecorObjects)
+        {
+            if (bounds.Intersects(decor.Bounds))
+                return true;
+        }
+        return false;
+    }
+    
     public void Update(GameTime gameTime, Player player, System.Action<Item> onItemCollected = null) // Pass Player for Strategy
     {
         // Check Item Collection
@@ -54,7 +71,7 @@ public class Room
         // Update Enemies and Check Damage
         foreach (var enemy in Enemies)
         {
-            enemy.Update(gameTime, player);
+            enemy.Update(gameTime, player, Tilemap);
             
             // Check if enemy touches player
             if (player.Bounds.Intersects(enemy.Bounds))
@@ -67,6 +84,13 @@ public class Room
     public void Draw(SpriteBatch spriteBatch)
     {
         Tilemap.Draw(spriteBatch);
+        
+        // Draw decor objects (behind items and enemies)
+        foreach (var decor in DecorObjects)
+        {
+            decor.Draw(spriteBatch);
+        }
+        
         foreach (var item in Items)
         {
             item.Draw(spriteBatch);
@@ -77,3 +101,4 @@ public class Room
         }
     }
 }
+
