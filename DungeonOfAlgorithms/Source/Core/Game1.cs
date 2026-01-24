@@ -128,7 +128,7 @@ public class Game1 : Game
         
         // Room 2 - Spread around walkable floor
         room2.AddDecor(new DecorObject(objectsTexture, new Vector2(100, 280), new Rectangle(0, 0, 16, 16)));
-        room2.AddDecor(new DecorObject(objectsTexture, new Vector2(300, 280), new Rectangle(16, 0, 16, 16)));
+        // room2.AddDecor(new DecorObject(objectsTexture, new Vector2(300, 280), new Rectangle(16, 0, 16, 16))); // Removed blocking box
         room2.AddDecor(new DecorObject(objectsTexture, new Vector2(400, 280), new Rectangle(0, 16, 16, 16)));
         
         // Room 3 - Treasure room with barrels and crates
@@ -232,6 +232,13 @@ public class Game1 : Game
             Window.Title = "PAUSED - Press P to Resume";
             return;
         }
+
+        // Toggle God Mode
+        if (Keyboard.GetState().IsKeyDown(Keys.G) && _lastKeyboardState.IsKeyUp(Keys.G))
+        {
+            _player.IsGodMode = !_player.IsGodMode;
+            System.Console.WriteLine($"God Mode: {_player.IsGodMode}");
+        }
         
         if (_gameState == GameState.Victory)
         {
@@ -276,7 +283,8 @@ public class Game1 : Game
         });
 
         // DEBUG: Show position in Title
-        Window.Title = $"HP: {_player.Health} | Score: {_player.Score} | Room: {DungeonManager.Instance.CurrentRoom.Id}";
+        string godText = _player.IsGodMode ? " | GOD MODE" : "";
+        Window.Title = $"HP: {_player.Health} | Score: {_player.Score} | Room: {DungeonManager.Instance.CurrentRoom.Id} | Pos: {(int)_player.Position.X},{(int)_player.Position.Y}{godText}";
 
         // --- Fade Transition Logic ---
         float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -438,6 +446,10 @@ public class Game1 : Game
         else
         {
             _hud.Draw(_spriteBatch, _player);
+            if (_player.IsGodMode)
+            {
+                 DrawShadowString(_font, "GOD MODE", new Vector2(10, 50), Color.Yellow);
+            }
         }
         
         _spriteBatch.End();

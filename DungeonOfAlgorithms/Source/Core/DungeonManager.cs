@@ -68,7 +68,7 @@ public class DungeonManager
                 if (int.TryParse(values[x], out int tileIndex))
                 {
                     // Tiled sometimes exports -1 for empty, treat as 0 or handling needed
-                    mapData[y, x] = tileIndex < 0 ? 0 : tileIndex;
+                    mapData[y, x] = tileIndex; // Allow negative values for transparent/empty tiles
                 }
             }
         }

@@ -12,6 +12,7 @@ public class Player : IGameEntity
     public int Health { get; private set; } = 100;
     public int Score { get; private set; } = 0;
     public bool IsAlive => Health > 0;
+    public bool IsGodMode { get; set; } = false;
     
     // Animation
     private Dictionary<string, Texture2D> _textures;
@@ -51,7 +52,7 @@ public class Player : IGameEntity
 
     public void TakeDamage(int amount)
     {
-        if (_invincibilityTimer <= 0)
+        if (_invincibilityTimer <= 0 && !IsGodMode)
         {
             Health -= amount;
             _invincibilityTimer = INVINCIBILITY_DURATION;
