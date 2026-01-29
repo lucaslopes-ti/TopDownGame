@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dia 0: Estruturas de Dados - Dungeon Of Algorithms</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --senai-blue: #003366;
+            --senai-blue-light: #004a99;
+            --senai-orange: #ff6600;
+            --black: #0a0a0a;
+            --dark-gray: #1a1a2e;
+            --medium-gray: #16213e;
+            --light-gray: #0f3460;
+            --silver: #8a9ab0;
+            --white: #f0f0f0;
+            --accent-secondary: #00aaff;
+            --header-height: 70px;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--black);
+            color: var(--white);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.1) 2px, rgba(0, 0, 0, 0.1) 4px);
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(0, 51, 102, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 51, 102, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background: linear-gradient(180deg, var(--dark-gray), transparent);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 100;
+        }
+
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .day-indicator {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+            color: var(--senai-orange);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .slide-counter {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1rem;
+            color: var(--silver);
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--senai-blue), var(--senai-orange));
+            transition: width 0.3s ease;
+            z-index: 1001;
+        }
+
+        .presentation {
+            width: 100%;
+            min-height: 100vh;
+            padding-top: calc(var(--header-height) + 20px);
+            padding-bottom: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .slide {
+            display: none;
+            width: 94%;
+            max-width: 1400px;
+            background: linear-gradient(145deg, var(--dark-gray), var(--black));
+            border: 2px solid var(--medium-gray);
+            border-radius: 20px;
+            padding: 40px 50px 50px;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--senai-orange), transparent);
+        }
+
+        .slide.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.8rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 15px;
+            text-shadow: 0 0 30px rgba(255, 102, 0, 0.3);
+            background: linear-gradient(180deg, var(--white), var(--silver));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: var(--senai-orange);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: var(--silver);
+            margin: 15px 0 8px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        p,
+        li {
+            font-size: 1.25rem;
+            line-height: 1.7;
+            font-weight: 500;
+        }
+
+        ul,
+        ol {
+            list-style: none;
+            margin: 8px 0;
+        }
+
+        li {
+            position: relative;
+            padding-left: 25px;
+            margin: 10px 0;
+        }
+
+        li::before {
+            content: '▶';
+            position: absolute;
+            left: 0;
+            color: var(--senai-orange);
+            font-size: 0.7rem;
+        }
+
+        .highlight {
+            color: var(--senai-orange);
+            font-weight: 700;
+        }
+
+        .highlight-blue {
+            color: var(--accent-secondary);
+            font-weight: 700;
+        }
+
+        .tech-card {
+            background: linear-gradient(135deg, var(--medium-gray), var(--dark-gray));
+            border: 1px solid var(--light-gray);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px 0;
+            transition: all 0.3s ease;
+        }
+
+        .tech-card:hover {
+            border-color: var(--senai-orange);
+            transform: translateX(5px);
+        }
+
+        .tech-card h3 {
+            margin-top: 0;
+            color: var(--white);
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        .three-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .nav-btn {
+            background: var(--medium-gray);
+            border: 2px solid var(--light-gray);
+            color: var(--white);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            padding: 10px 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .nav-btn:hover {
+            background: var(--senai-orange);
+            border-color: var(--senai-orange);
+            color: var(--black);
+        }
+
+        .title-slide {
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: var(--silver);
+            margin-bottom: 30px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: var(--senai-orange);
+            color: var(--black);
+            padding: 6px 16px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin: 4px;
+        }
+
+        .badge.blue {
+            background: var(--senai-blue-light);
+            color: var(--white);
+        }
+
+        .badge.gray {
+            background: var(--light-gray);
+            color: var(--white);
+        }
+
+        .badge.green {
+            background: #28a745;
+            color: var(--white);
+        }
+
+        .badge.purple {
+            background: #6f42c1;
+            color: var(--white);
+        }
+
+        .code-block {
+            background: #0d1117;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.95rem;
+            color: #c9d1d9;
+            overflow-x: auto;
+            margin: 10px 0;
+            white-space: pre;
+            line-height: 1.5;
+        }
+
+        .code-block .keyword {
+            color: #ff7b72;
+        }
+
+        .code-block .type {
+            color: #79c0ff;
+        }
+
+        .code-block .comment {
+            color: #8b949e;
+        }
+
+        .code-block .string {
+            color: #a5d6ff;
+        }
+
+        .code-block .number {
+            color: #79c0ff;
+        }
+
+        .theory-box {
+            background: linear-gradient(135deg, rgba(0, 51, 102, 0.2), rgba(0, 51, 102, 0.1));
+            border-left: 4px solid var(--senai-blue-light);
+            padding: 15px 20px;
+            border-radius: 0 10px 10px 0;
+            margin: 15px 0;
+        }
+
+        .theory-box h4 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--accent-secondary);
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .example-box {
+            background: linear-gradient(135deg, rgba(255, 102, 0, 0.15), rgba(0, 51, 102, 0.1));
+            border-left: 4px solid var(--senai-orange);
+            padding: 15px 20px;
+            border-radius: 0 10px 10px 0;
+            margin: 15px 0;
+        }
+
+        .example-box h4 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--senai-orange);
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .exercise-box {
+            background: linear-gradient(135deg, rgba(111, 66, 193, 0.15), rgba(0, 51, 102, 0.1));
+            border-left: 4px solid #6f42c1;
+            padding: 15px 20px;
+            border-radius: 0 10px 10px 0;
+            margin: 15px 0;
+        }
+
+        .exercise-box h4 {
+            font-family: 'Orbitron', sans-serif;
+            color: #6f42c1;
+            margin-bottom: 8px;
+        }
+
+        .game-box {
+            background: linear-gradient(135deg, rgba(40, 167, 69, 0.15), rgba(0, 51, 102, 0.1));
+            border-left: 4px solid #28a745;
+            padding: 15px 20px;
+            border-radius: 0 10px 10px 0;
+            margin: 15px 0;
+        }
+
+        .game-box h4 {
+            font-family: 'Orbitron', sans-serif;
+            color: #28a745;
+            margin-bottom: 8px;
+        }
+
+        .phase-indicator {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .phase {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            opacity: 0.4;
+        }
+
+        .phase.active {
+            opacity: 1;
+        }
+
+        .phase.teoria {
+            background: var(--senai-blue-light);
+        }
+
+        .phase.exemplo {
+            background: var(--senai-orange);
+            color: var(--black);
+        }
+
+        .phase.exercicio {
+            background: #6f42c1;
+        }
+
+        .phase.pratica {
+            background: #28a745;
+        }
+
+        .time-indicator {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--silver);
+            margin-bottom: 15px;
+        }
+
+        .array-visual {
+            display: flex;
+            gap: 3px;
+            margin: 15px 0;
+            justify-content: center;
+        }
+
+        .array-cell {
+            width: 50px;
+            height: 50px;
+            background: var(--senai-blue-light);
+            border: 2px solid var(--senai-orange);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            position: relative;
+        }
+
+        .array-cell .index {
+            position: absolute;
+            bottom: -22px;
+            font-size: 0.75rem;
+            color: var(--silver);
+        }
+
+        .array-cell.highlight-cell {
+            background: var(--senai-orange);
+            color: var(--black);
+        }
+
+        .stack-visual {
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 3px;
+            margin: 15px auto;
+            width: 100px;
+        }
+
+        .stack-cell {
+            height: 40px;
+            background: var(--senai-blue-light);
+            border: 2px solid var(--accent-secondary);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .stack-cell.top {
+            background: var(--senai-orange);
+            color: var(--black);
+        }
+
+        .queue-visual {
+            display: flex;
+            gap: 3px;
+            margin: 15px 0;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .queue-cell {
+            width: 70px;
+            height: 50px;
+            background: var(--senai-blue-light);
+            border: 2px solid #6f42c1;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        .queue-cell.front {
+            background: #6f42c1;
+        }
+
+        .queue-cell.rear {
+            background: var(--senai-orange);
+            color: var(--black);
+        }
+
+        .operation-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .operation-table th,
+        .operation-table td {
+            padding: 12px 15px;
+            text-align: center;
+            border: 1px solid var(--light-gray);
+        }
+
+        .operation-table th {
+            background: var(--senai-blue);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.9rem;
+        }
+
+        .operation-table td {
+            background: var(--medium-gray);
+        }
+
+        .operation-table .good {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .operation-table .bad {
+            color: #dc3545;
+        }
+
+        .file-ref {
+            background: rgba(0, 170, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .agenda-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .agenda-item {
+            background: var(--medium-gray);
+            border: 1px solid var(--light-gray);
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .agenda-time {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            color: var(--senai-orange);
+            min-width: 80px;
+        }
+
+        .agenda-content h4 {
+            font-size: 1rem;
+            margin-bottom: 3px;
+        }
+
+        .agenda-content p {
+            font-size: 0.85rem;
+            color: var(--silver);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="grid-bg"></div>
+    <header class="header">
+        <div style="font-family: 'Orbitron'; font-size: 1.2rem; color: var(--senai-orange);">SENAI</div>
+        <div class="header-info">
+            <div class="day-indicator">Dia 0 - Pré-requisitos</div>
+            <div class="slide-counter" id="slideCounter"></div>
+        </div>
+    </header>
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="presentation">
+
+        <!-- SLIDE 1: Título -->
+        <div class="slide active title-slide" id="slide1">
+            <h1>Estruturas de Dados</h1>
+            <p class="subtitle">Construindo o Dungeon Of Algorithms</p>
+            <div style="margin-top: 25px;">
+                <span class="badge">Arrays</span>
+                <span class="badge">List&lt;T&gt;</span>
+                <span class="badge blue">Stack</span>
+                <span class="badge blue">Queue</span>
+            </div>
+            <p style="margin-top: 40px; color: var(--silver);">Curso Técnico em Programação de Jogos Digitais</p>
+            <div style="margin-top: 30px;"><span class="badge gray" style="padding: 10px 20px;">Duração: 4 horas</span>
+            </div>
+            <div style="margin-top: 30px; display: flex; justify-content: center; gap: 10px;">
+                <span class="phase teoria active">1. Teoria</span>
+                <span class="phase exemplo active">2. Exemplo</span>
+                <span class="phase exercicio active">3. Exercícios</span>
+                <span class="phase pratica active">4. Prática no Jogo</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 2: Agenda -->
+        <div class="slide" id="slide2">
+            <h2>Agenda do Dia</h2>
+            <div class="agenda-list">
+                <div class="agenda-item">
+                    <div class="agenda-time">00:00 - 01:00</div>
+                    <div class="agenda-content">
+                        <h4>Arrays & List&lt;T&gt;</h4>
+                        <p>Teoria → Exemplo → Exercícios → Jogo</p>
+                    </div>
+                </div>
+                <div class="agenda-item">
+                    <div class="agenda-time">01:00 - 01:45</div>
+                    <div class="agenda-content">
+                        <h4>Listas Ligadas</h4>
+                        <p>Teoria → Exemplo → Exercícios</p>
+                    </div>
+                </div>
+                <div class="agenda-item">
+                    <div class="agenda-time">01:45 - 02:00</div>
+                    <div class="agenda-content">
+                        <h4>:: Intervalo</h4>
+                        <p>Pausa para descanso</p>
+                    </div>
+                </div>
+                <div class="agenda-item">
+                    <div class="agenda-time">02:00 - 02:45</div>
+                    <div class="agenda-content">
+                        <h4>Pilhas (Stack)</h4>
+                        <p>Teoria → Exemplo → Exercícios → Jogo</p>
+                    </div>
+                </div>
+                <div class="agenda-item">
+                    <div class="agenda-time">02:45 - 03:30</div>
+                    <div class="agenda-content">
+                        <h4>Filas (Queue)</h4>
+                        <p>Teoria → Exemplo → Exercícios → Jogo</p>
+                    </div>
+                </div>
+                <div class="agenda-item">
+                    <div class="agenda-time">03:30 - 04:00</div>
+                    <div class="agenda-content">
+                        <h4>Prática Final</h4>
+                        <p>Integração no projeto real</p>
+                    </div>
+                </div>
+            </div>
+            <div class="theory-box" style="margin-top: 20px;">
+                <h4>Metodologia de Cada Bloco</h4>
+                <p><span class="highlight-blue">1. Teoria</span> → <span class="highlight">2. Exemplo Juntos</span> →
+                    <span style="color: #6f42c1;">3. Vocês Resolvem</span> → <span style="color: #28a745;">4. Aplicar no
+                        Jogo</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- ========== SLIDE 3: BIG O - DEFINICAO FORMAL ========== -->
+        <div class="slide" id="slide3">
+            <h2>Notacao Big O - Definicao Formal</h2>
+            <div class="theory-box">
+                <h4>Definicao Matematica</h4>
+                <p>Dizemos que <span class="highlight">f(n) = O(g(n))</span> se existem constantes positivas <span
+                        class="highlight-blue">c</span> e <span class="highlight-blue">n₀</span> tais que:<br>
+                    <strong style="font-size: 1.3rem; display: block; text-align: center; margin: 10px 0;">f(n) ≤ c ·
+                        g(n) para todo n ≥ n₀</strong>
+                    Em outras palavras: g(n) e um <span class="highlight">limite superior assintotico</span> para f(n).
+                </p>
+            </div>
+            <div class="two-column" style="margin-top: 15px;">
+                <div class="tech-card">
+                    <h3>O que isso significa?</h3>
+                    <ul>
+                        <li>Descreve o <span class="highlight">pior caso</span> de execucao</li>
+                        <li>Ignora constantes e termos menores</li>
+                        <li>Foca no comportamento quando <span class="highlight-blue">n → ∞</span></li>
+                        <li>Permite comparar algoritmos independente de hardware</li>
+                    </ul>
+                </div>
+                <div class="tech-card">
+                    <h3>Por que usar Big O?</h3>
+                    <ul>
+                        <li>Hardware muda, complexidade nao</li>
+                        <li>Preve escalabilidade do sistema</li>
+                        <li>Identifica gargalos antes de implementar</li>
+                        <li>Linguagem universal entre desenvolvedores</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="example-box" style="margin-top: 15px;">
+                <h4>Exemplo Pratico</h4>
+                <p>Se T(n) = 3n² + 5n + 100, entao T(n) = <span class="highlight">O(n²)</span><br>
+                    Justificativa: Para n grande, o termo n² domina. Os coeficientes 3, 5 e 100 sao irrelevantes
+                    assintoticamente.</p>
+            </div>
+        </div>
+
+        <!-- ========== SLIDE 3B: CLASSES DE COMPLEXIDADE ========== -->
+        <div class="slide" id="slide4">
+            <h2>Classes de Complexidade</h2>
+            <div style="text-align: center; margin-bottom: 15px;">
+                <svg viewBox="0 0 400 180" style="width: 100%; max-width: 500px;">
+                    <line x1="50" y1="150" x2="380" y2="150" stroke="#8a9ab0" stroke-width="2" />
+                    <line x1="50" y1="150" x2="50" y2="20" stroke="#8a9ab0" stroke-width="2" />
+                    <text x="215" y="175" fill="#8a9ab0" font-size="12" text-anchor="middle">Tamanho da entrada
+                        (n)</text>
+                    <text x="20" y="85" fill="#8a9ab0" font-size="12" transform="rotate(-90, 20, 85)">Operacoes</text>
+                    <line x1="50" y1="130" x2="370" y2="130" stroke="#28a745" stroke-width="3" />
+                    <text x="375" y="135" fill="#28a745" font-size="11">O(1)</text>
+                    <path d="M50,130 Q150,90 370,70" fill="none" stroke="#17a2b8" stroke-width="3" />
+                    <text x="375" y="75" fill="#17a2b8" font-size="11">O(log n)</text>
+                    <line x1="50" y1="130" x2="370" y2="40" stroke="#ff6600" stroke-width="3" />
+                    <text x="375" y="45" fill="#ff6600" font-size="11">O(n)</text>
+                    <path d="M50,130 Q100,110 150,70 T250,30" fill="none" stroke="#dc3545" stroke-width="3" />
+                    <text x="255" y="25" fill="#dc3545" font-size="11">O(n²)</text>
+                </svg>
+            </div>
+            <table class="operation-table" style="font-size: 0.95rem;">
+                <tr>
+                    <th>Classe</th>
+                    <th>Nome</th>
+                    <th>n=10</th>
+                    <th>n=100</th>
+                    <th>n=1000</th>
+                    <th>Exemplo</th>
+                </tr>
+                <tr>
+                    <td class="good">O(1)</td>
+                    <td>Constante</td>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>1</td>
+                    <td>Acesso por indice</td>
+                </tr>
+                <tr>
+                    <td style="color: #17a2b8;">O(log n)</td>
+                    <td>Logaritmica</td>
+                    <td>3</td>
+                    <td>7</td>
+                    <td>10</td>
+                    <td>Busca binaria</td>
+                </tr>
+                <tr>
+                    <td style="color: #ff6600;">O(n)</td>
+                    <td>Linear</td>
+                    <td>10</td>
+                    <td>100</td>
+                    <td>1000</td>
+                    <td>Percorrer lista</td>
+                </tr>
+                <tr>
+                    <td class="bad">O(n²)</td>
+                    <td>Quadratica</td>
+                    <td>100</td>
+                    <td>10.000</td>
+                    <td>1.000.000</td>
+                    <td>Loop aninhado</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- ========== SLIDE 3C: COMO CALCULAR ========== -->
+        <div class="slide" id="slide5">
+            <h2>Como Calcular a Complexidade</h2>
+            <div class="theory-box">
+                <h4>Metodologia de Analise</h4>
+                <p><span class="highlight">Passo 1:</span> Identifique as operacoes primitivas (atribuicao, comparacao,
+                    aritmetica)<br>
+                    <span class="highlight">Passo 2:</span> Conte quantas vezes cada operacao executa em funcao de n<br>
+                    <span class="highlight">Passo 3:</span> Some todas as operacoes para obter T(n)<br>
+                    <span class="highlight">Passo 4:</span> Simplifique mantendo apenas o termo dominante
+                </p>
+            </div>
+            <div class="two-column" style="margin-top: 15px;">
+                <div class="tech-card">
+                    <h3>Regras de Simplificacao</h3>
+                    <ul>
+                        <li><span class="highlight">Constantes:</span> O(2n) = O(n)</li>
+                        <li><span class="highlight">Soma:</span> O(n² + n) = O(n²)</li>
+                        <li><span class="highlight">Produto:</span> O(n) × O(n) = O(n²)</li>
+                        <li><span class="highlight">Sequencia:</span> O(n) + O(m) = O(n+m)</li>
+                    </ul>
+                </div>
+                <div class="tech-card">
+                    <h3>Hierarquia de Crescimento</h3>
+                    <p style="font-family: monospace; font-size: 1rem; line-height: 1.8;">
+                        O(1) &lt; O(log n) &lt; O(n) &lt; O(n log n) &lt; O(n²) &lt; O(n³) &lt; O(2ⁿ) &lt; O(n!)
+                    </p>
+                    <p style="font-size: 0.9rem; color: var(--silver);">Da esquerda para direita: mais eficiente para
+                        menos eficiente</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== SLIDE 3D: EXEMPLOS PRATICOS ========== -->
+        <div class="slide" id="slide6">
+            <h2>Analise de Codigo - Exemplos</h2>
+            <div class="two-column">
+                <div class="tech-card">
+                    <h3 style="color: #28a745;">O(1) - Tempo Constante</h3>
+                    <div class="code-block"><span class="comment">// Operacoes fixas, independente de n</span>
+                        <span class="keyword">int</span> primeiro = array[0]; <span class="comment">// 1 op</span>
+                        <span class="keyword">int</span> ultimo = array[n - 1]; <span class="comment">// 1 op</span>
+                        <span class="keyword">int</span> soma = primeiro + ultimo; <span class="comment">// 1 op</span>
+                        <span class="comment">// Total: 3 operacoes = O(1)</span>
+                    </div>
+                </div>
+                <div class="tech-card">
+                    <h3 style="color: #ff6600;">O(n) - Tempo Linear</h3>
+                    <div class="code-block"><span class="keyword">int</span> soma = 0; <span class="comment">// 1
+                            op</span>
+                        <span class="keyword">for</span> (<span class="keyword">int</span> i = 0; i &lt; n; i++) <span
+                            class="comment">// n iteracoes</span>
+                        {
+                        soma += array[i]; <span class="comment">// 1 op por iteracao</span>
+                        }
+                        <span class="comment">// Total: 1 + n = O(n)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="tech-card" style="margin-top: 15px;">
+                <h3 style="color: #dc3545;">O(n²) - Tempo Quadratico</h3>
+                <div class="code-block"><span class="keyword">for</span> (<span class="keyword">int</span> i = 0; i &lt;
+                    n; i++) <span class="comment">// loop externo: n vezes</span>
+                    {
+                    <span class="keyword">for</span> (<span class="keyword">int</span> j = 0; j &lt; n; j++) <span
+                        class="comment">// loop interno: n vezes CADA iteracao externa</span>
+                    {
+                    matriz[i, j] = i * j; <span class="comment">// 1 operacao</span>
+                    }
+                    }
+                    <span class="comment">// Total: n * n = n² operacoes = O(n²)</span>
+                </div>
+            </div>
+            <div class="example-box" style="margin-top: 10px;">
+                <h4>Impacto em Games - 60 FPS = 16.6ms por frame</h4>
+                <p>Com n=1000 inimigos: O(n²) = 1.000.000 operacoes. Se cada leva 1μs = <span class="highlight">1
+                        segundo por frame!</span> Inviavel.</p>
+            </div>
+        </div>
+
+        <!-- ========== BLOCO 1: ARRAYS ========== -->
+
+        <!-- SLIDE 4: Arrays - TEORIA -->
+        <div class="slide" id="slide7">
+            <div class="phase-indicator">
+                <span class="phase teoria active">1. TEORIA</span>
+                <span class="phase exemplo">2. Exemplo</span>
+                <span class="phase exercicio">3. Exercícios</span>
+                <span class="phase pratica">4. Prática</span>
+            </div>
+            <h2>Arrays: Conceito</h2>
+            <span class="time-indicator">Tempo: 00:00 - 01:00</span>
+            <div class="theory-box">
+                <h4>O que é um Array?</h4>
+                <p>Uma <span class="highlight">coleção ordenada</span> de elementos do <span
+                        class="highlight-blue">mesmo tipo</span>, armazenados em posições <span
+                        class="highlight">contíguas de memória</span>.</p>
+            </div>
+            <div class="array-visual">
+                <div class="array-cell">10<span class="index">[0]</span></div>
+                <div class="array-cell">25<span class="index">[1]</span></div>
+                <div class="array-cell highlight-cell">42<span class="index">[2]</span></div>
+                <div class="array-cell">8<span class="index">[3]</span></div>
+                <div class="array-cell">15<span class="index">[4]</span></div>
+            </div>
+            <div class="two-column" style="margin-top: 30px;">
+                <div class="tech-card">
+                    <h3>Características</h3>
+                    <ul>
+                        <li>Tamanho <span class="highlight">fixo</span></li>
+                        <li>Acesso por índice: <span class="highlight">O(1)</span></li>
+                        <li>Índices começam em <span class="highlight-blue">0</span></li>
+                    </ul>
+                </div>
+                <div class="tech-card">
+                    <h3>Sintaxe C#</h3>
+                    <div class="code-block" style="font-size: 0.85rem;"><span class="keyword">int</span>[] numeros =
+                        <span class="keyword">new int</span>[<span class="number">5</span>];
+                        <span class="keyword">int</span>[] valores = { <span class="number">10</span>, <span
+                            class="number">25</span>, <span class="number">42</span>, <span class="number">8</span>,
+                        <span class="number">15</span> };
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: Arrays - EXEMPLO -->
+        <div class="slide" id="slide8">
+            <div class="phase-indicator">
+                <span class="phase teoria">1. Teoria</span>
+                <span class="phase exemplo active">2. EXEMPLO</span>
+                <span class="phase exercicio">3. Exercícios</span>
+                <span class="phase pratica">4. Prática</span>
+            </div>
+            <h2>Arrays: Exemplo Juntos</h2>
+            <div class="example-box">
+                <h4>Vamos Codificar Juntos!</h4>
+                <p>Abram o Visual Studio / VS Code e digitem junto comigo.</p>
+            </div>
+            <div class="code-block"><span class="comment">// 1. Criar um array de notas</span>
+                <span class="keyword">int</span>[] notas = { <span class="number">7</span>, <span
+                    class="number">9</span>, <span class="number">5</span>, <span class="number">8</span>, <span
+                    class="number">10</span> };
+
+                <span class="comment">// 2. Acessar um elemento - O(1)</span>
+                <span class="keyword">int</span> primeiraNota = notas[<span class="number">0</span>]; <span
+                    class="comment">// 7</span>
+                <span class="keyword">int</span> ultimaNota = notas[<span class="number">4</span>]; <span
+                    class="comment">// 10</span>
+
+                <span class="comment">// 3. Modificar um elemento - O(1)</span>
+                notas[<span class="number">2</span>] = <span class="number">6</span>; <span class="comment">// Agora:
+                    {7, 9, 6, 8, 10}</span>
+
+                <span class="comment">// 4. Percorrer o array - O(n)</span>
+                <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i
+                < notas.Length; i++) { Console.WriteLine(<span class="string">$"Nota {i}: {notas[i]}"</span>);
+                    }
+
+                    <span class="comment">// 5. Calcular média</span>
+                    <span class="keyword">int</span> soma = <span class="number">0</span>;
+                    <span class="keyword">foreach</span> (<span class="keyword">int</span> nota <span
+                        class="keyword">in</span> notas) soma += nota;
+                    <span class="keyword">double</span> media = (<span class="keyword">double</span>)soma /
+                    notas.Length;
+            </div>
+        </div>
+
+        <!-- SLIDE 5: Arrays - EXERCÍCIOS -->
+        <div class="slide" id="slide9">
+            <div class="phase-indicator">
+                <span class="phase teoria">1. Teoria</span>
+                <span class="phase exemplo">2. Exemplo</span>
+                <span class="phase exercicio active">3. EXERCÍCIOS</span>
+                <span class="phase pratica">4. Prática</span>
+            </div>
+            <h2>Arrays: Exercícios</h2>
+            <div class="exercise-box">
+                <h4>Agora é com vocês! (10 minutos)</h4>
+            </div>
+            <div class="three-column">
+                <div class="tech-card">
+                    <h3>Exercício 1</h3>
+                    <p>Crie um array com os nomes de 5 jogos favoritos e imprima todos.</p>
+                    <div class="code-block" style="font-size: 0.8rem;"><span class="keyword">string</span>[] jogos = ???
+                    </div>
+                </div>
+                <div class="tech-card">
+                    <h3>Exercício 2</h3>
+                    <p>Dado um array de números, encontre o <span class="highlight">maior</span> valor.</p>
+                    <div class="code-block" style="font-size: 0.8rem;"><span class="keyword">int</span>[] nums = {<span
+                            class="number">3</span>,<span class="number">9</span>,<span class="number">1</span>,<span
+                            class="number">7</span>};
+                        <span class="comment">// Maior = ?</span>
+                    </div>
+                </div>
+                <div class="tech-card">
+                    <h3>Exercício 3</h3>
+                    <p>Inverta a ordem dos elementos de um array.</p>
+                    <div class="code-block" style="font-size: 0.8rem;"><span class="comment">// {1,2,3} → {3,2,1}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="theory-box" style="margin-top: 20px;">
+                <h4>Dica</h4>
+                <p>Use <code>array.Length</code> para saber o tamanho do array!</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: Arrays - PRÁTICA NO JOGO -->
+        <div class="slide" id="slide10">
+            <div class="phase-indicator">
+                <span class="phase teoria">1. Teoria</span>
+                <span class="phase exemplo">2. Exemplo</span>
+                <span class="phase exercicio">3. Exercicios</span>
+                <span class="phase pratica active">4. PRATICA</span>
+            </div>
+            <h2>Arrays: Aplicacao no Jogo</h2>
+            <div class="game-box">
+                <h4>Contexto: O Mapa do Jogo</h4>
+                <p>O mapa usa um <span class="highlight">Array 2D</span> onde cada numero representa um tipo de tile
+                    (parede, chao, porta).</p>
+            </div>
+            <div class="two-column">
+                <div class="tech-card">
+                    <h3>Passo 1: Abrir o Arquivo</h3>
+                    <p>Navegue ate: <span class="file-ref">Content/Maps/Room_01.csv</span></p>
+                    <p>Voce vera uma matriz de numeros separados por virgula:</p>
+                    <div class="code-block">96,97,97,97,97,97,98
+                        20, 2, 2, 2, 2, 2,23
+                        20, 2, 2, 2, 2, 2,23
+                        20, 2, 2, 2, 2, 2,23
+                        96,97,97,99,97,97,98</div>
+                </div>
+                <div class="tech-card">
+                    <h3>Passo 2: Entender os IDs</h3>
+                    <ul>
+                        <li><span class="highlight">96, 97, 98, 20, 23</span> = Paredes</li>
+                        <li><span class="highlight-blue">2</span> = Chao (passavel)</li>
+                        <li><span style="color: #28a745;">99</span> = Porta</li>
+                    </ul>
+                    <h3 style="margin-top: 15px;">Passo 3: Modificar</h3>
+                    <p>Troque um <span class="highlight-blue">2</span> por <span class="highlight">96</span> para criar
+                        uma parede no meio da sala.</p>
+                </div>
+            </div>
+            <div class="example-box" style="margin-top: 15px;">
+                <h4>Resultado Esperado</h4>
+                <p>Ao rodar o jogo, o jogador nao conseguira passar pelo tile que voce alterou. Isso demonstra como o
+                    array controla a colisao.</p>
+            </div>
+        </div>
+
+        <!-- ========== BLOCO 2: LIST<T> ========== -->
+
+        <!-- SLIDE 7: List - TEORIA -->
+        <div class="slide" id="slide11">
+            <div class="phase-indicator">
+                <span class="phase teoria active">1. TEORIA</span>
+                <span class="phase exemplo">2. Exemplo</span>
+                <span class="phase exercicio">3. Exercícios</span>
+                <span class="phase pratica">4. Prática</span>
+            </div>
+            <h2>List&lt;T&gt;: Conceito</h2>
+            <div class="theory-box">
+                <h4>Por que não Array?</h4>
+                <p>Arrays têm tamanho <span class="highlight">fixo</span>. Quando precisamos adicionar/remover elementos
+                    dinamicamente, usamos <span class="highlight-blue">List&lt;T&gt;</span>.</p>
+            </div>
+            <div class="two-column">
+                <div class="tech-card">
+                    <h3>Array (Fixo)</h3>
+                    <ul>
+                        <li>Tamanho definido na criação</li>
+                        <li>Não pode crescer/diminuir</li>
+                        <li>Bom para dados estáticos</li>
+                    </ul>
+                </div>
+                <div class="tech-card">
+                    <h3>List&lt;T&gt; (Dinâmico)</h3>
+                    <ul>
+                        <li>Tamanho <span class="highlight">cresce automaticamente</span></li>
+                        <li>Add, Remove, Insert</li>
+                        <li>Bom para coleções que mudam</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="code-block" style="margin-top: 15px;"><span class="keyword">using</span>
+                System.Collections.Generic;
+
+                List&lt;<span class="keyword">int</span>&gt; numeros = <span class="keyword">new</span> List&lt;<span
+                    class="keyword">int</span>&gt;();
+                numeros.Add(<span class="number">10</span>); <span class="comment">// Adiciona: [10]</span>
+                numeros.Add(<span class="number">20</span>); <span class="comment">// Adiciona: [10, 20]</span>
+                numeros.Remove(<span class="number">10</span>); <span class="comment">// Remove: [20]</span></div>
+        </div>
+
+        <!-- SLIDE 8: List - EXEMPLO -->
+        <div class="slide" id="slide12">
+            <div class="phase-indicator">
+                <span class="phase teoria">1. Teoria</span>
+                <span class="phase exemplo active">2. EXEMPLO</span>
+                <span class="phase exercicio">3. Exercícios</span>
+                <span class="phase pratica">4. Prática</span>
+            </div>
+            <h2>List&lt;T&gt;: Exemplo Juntos</h2>
+            <div class="example-box">
+                <h4>Vamos Codificar Juntos!</h4>
+            </div>
+            <div class="code-block"><span class="keyword">using</span> System.Collections.Generic;
+
+                <span class="comment">// 1. Criar lista de inimigos</span>
+                List&lt;<span class="keyword">string</span>&gt; inimigos = <span class="keyword">new</span>
+                List&lt;<span class="keyword">string</span>&gt;();
+
+                <span class="comment">// 2. Adicionar inimigos</span>
+                inimigos.Add(<span class="string">"Slime"</span>);
+                inimigos.Add(<span class="string">"Ghost"</span>);
+                inimigos.Add(<span class="string">"Orc"</span>);
+                Console.WriteLine(<span class="string">$"Total: {inimigos.Count}"</span>); <span class="comment">//
+                    3</span>
+
+                <span class="comment">// 3. Acessar por índice - igual array!</span>
+                <span class="keyword">string</span> primeiro = inimigos[<span class="number">0</span>]; <span
+                    class="comment">// "Slime"</span>
+
+                <span class="comment">// 4. Remover inimigo derrotado</span>
+                inimigos.Remove(<span class="string">"Slime"</span>); <span class="comment">// Remove primeiro
+                    encontrado</span>
+
+                <span class="comment">// 5. Verificar se existe</span>
+                <span class="keyword">bool</span> temGhost = inimigos.Contains(<span class="string">"Ghost"</span>);
+                <span class="comment">// true</span>
+
+                <span class="comment">// 6. Percorrer</span>
+                <span class="keyword">foreach</span> (<span class="keyword">string</span> inimigo <span
+                    class="keyword">in</span> inimigos)
+                Console.WriteLine(inimigo);
+            </div>
+        </div>
+
+        <!-- SLIDE 9: List - EXERCÍCIOS -->
+        <div class="slide" id="slide13">
+            <div class="phase-indicator">
+                <span class="phase teoria">1. Teoria</span>
+                <span class="phase exemplo">2. Exemplo</span>
+                <span class="phase exercicio active">3. EXERCÍCIOS</span>
+                <span class="phase pratica">4. Prática</span>
+            </div>
+            <h2>List&lt;T&gt;: Exercícios</h2>
+            <div class="exercise-box">
+                <h4>Agora é com vocês! (10 minutos)</h4>
+            </div>
+            <div class="two-column">
+                <div class="tech-card">
+                    <h3>Exercício 1: Inventário</h3>
+                    <p>Crie uma lista de itens do inventário. Adicione 3 itens, remova 1, e mostre o que sobrou.</p>
+                    <div class="code-block" style="font-size: 0.8rem;">List&lt;<span class="keyword">string</span>&gt;
+                        inventario = ???
+                        <span class="comment">// Espada, Escudo, Poção</span>
+                        <span class="comment">// Remover Escudo</span>
+                    </div>
+                </div>
+                <div class="tech-card">
+                    <h3>Exercício 2: High Scores</h3>
+                    <p>Crie lista de pontuações. Adicione 5 scores e ordene do maior para menor.</p>
+                    <div class="code-block" style="font-size: 0.8rem;">List&lt;<span class="keyword">int</span>&gt;
+                        scores = ???
+                        <span class="comment">// Dica: .Sort() e .Reverse()</span>
+                    </div>
+                </div>
+            </div>
+            <div class="theory-box" style="margin-top: 15px;">
+                <h4>Métodos Úteis</h4>
+                <p><code>Add()</code>, <code>Remove()</code>, <code>RemoveAt(index)</code>, <code>Contains()</code>,
+                    <code>Count</code>, <code>Sort()</code>, <code>Clear()</code>
+                </p>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: List - PRÁTICA NO JOGO -->
+        <div class="slide" id="slide14">
+            <div class="phase-indicator">
+                <span class="phase teoria">1. Teoria</span>
+                <span class="phase exemplo">2. Exemplo</span>
+                <span class="phase exercicio">3. Exercícios</span>
+                <span class="phase pratica active">4. PRÁTICA</span>
+            </div>
+            <h2>List&lt;T&gt;: No Dungeon Of Algorithms</h2>
+            <div class="game-box">
+                <h4>Onde List aparece no jogo?</h4>
+                <p>Cada sala tem listas de <span class="highlight">Enemies</span> e <span
+                        class="highlight">Items</span>!</p>
+            </div>
+            <div class="tech-card">
+                <h3>Arquivo: <span class="file-ref">Room.cs</span></h3>
+                <div class="code-block"><span class="keyword">public</span> List&lt;Item&gt; Items { <span
+                        class="keyword">get</span>; } = <span class="keyword">new</span>();
+                    <span class="keyword">public</span> List&lt;Enemy&gt; Enemies { <span class="keyword">get</span>; }
+                    = <span class="keyword">new</span>();
+
+                    <span class="keyword">public void</span> AddEnemy(Enemy enemy) {
+                    Enemies.Add(enemy); <span class="comment">// O(1)</span>
+                    }
+
+                    <span class="comment">// Atualizar todos os inimigos</span>
+                    <span class="keyword">foreach</span> (<span class="keyword">var</span> enemy <span
+                        class="keyword">in</span> Enemies) {
+                    enemy.Update(gameTime, player);
+                    }
+                </div>
+            </div>
+            <div class="exercise-box">
+                <h4>Tarefa: Abrir Game1.cs (linha ~75)</h4>
+                <p>Adicione mais um inimigo na sala 1 usando:
+                    <code>room1.AddEnemy(EnemyFactory.CreateEnemy("Slime", new Vector2(100, 100)));</code>
+                </p>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: INTERVALO -->
+        <div class="slide title-slide" id="slide15">
+            <h1>:: Intervalo</h1>
+            <p class="subtitle">15 minutos para descanso</p>
+            <div style="margin-top: 30px;"><span class="badge green" style="padding: 10px 25px;">Voltamos em 15
+                    min</span></div>
+        </div>
+
+        <!-- ========== BLOCO 3: STACK ========== -->
+
+        <!-- SLIDE 12: Stack - TEORIA -->
+        <div class="slide" id="slide16">
+            <div class="phase-indicator">
+                <span class="phase teoria active">1. TEORIA</span>
+                <span class="phase exemplo">2. Exemplo</span>
+                <span class="phase exercicio">3. Exercícios</span>
+                <span class="phase pratica">4. Prática</span>
+            </div>
+            <h2>Stack (Pilha): Conceito</h2>
+            <span class="time-indicator">Tempo: 02:00 - 02:45</span>
+            <div class="theory-box">
+                <h4>LIFO = Last In, First Out</h4>
+                <p>O <span class="highlight">último</span> elemento a entrar é o <span
+                        class="highlight-blue">primeiro</span> a sair. Como uma pilha de pratos!</p>
+            </div>
+            <div class="two-column">
+                <div style="text-align: center;">
+                    <p style="color: var(--senai-orange);">← TOPO (Push/Pop)</p>
+                    <div class="stack-visual">
+                        <div class="stack-cell">Ação 1</div>
+                        <div class="stack-cell">Ação 2</div>
+                        <div class="stack-cell">Ação 3</div>
+                        <div class="stack-cell top">Ação 4</div>
+                    </div>
+                </div>
+                <div>
+                    <div class="tech-card">
+                        <h3>Operações - Todas O(1)!</h3>
+                        <ul>
+                            <li><span class="highlight">Push</span>: adiciona no topo</li>
+                            <li><span class="highlight">Pop</span>: remove do topo</li>
+                            <li><span class="highlight">Peek</span>: ver topo sem remover</li>
+                            <li><span class="highlight">Count</span>: quantidade</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 13: Stack - EXEMPLO -->
+        <div class="slide" id="slide17">
+            <div class="phase-indicator">
+                <span class="phase teoria">1. Teoria</span>
+                <span class="phase exemplo active">2. EXEMPLO</span>
+                <span class="phase exercicio">3. Exercícios</span>
+                <span class="phase pratica">4. Prática</span>
+            </div>
+            <h2>Stack: Exemplo Juntos</h2>
+            <div class="example-box">
+                <h4>Vamos Codificar Juntos!</h4>
+            </div>
+            <div class="code-block"><span class="keyword">using</span> System.Collections.Generic;
+
+                <span class="comment">// 1. Criar pilha</span>
+                Stack&lt;<span class="keyword">string</span>&gt; navegacao = <span class="keyword">new</span>
+                Stack&lt;<span class="keyword">string</span>&gt;();
+
+                <span class="comment">// 2. Push - adicionar páginas visitadas</span>
+                navegacao.Push(<span class="string">"Menu Principal"</span>);
+                navegacao.Push(<span class="string">"Opções"</span>);
+                navegacao.Push(<span class="string">"Áudio"</span>);
+                Console.WriteLine(<span class="string">$"Páginas: {navegacao.Count}"</span>); <span class="comment">//
+                    3</span>
+
+                <span class="comment">// 3. Peek - ver página atual</span>
+                <span class="keyword">string</span> atual = navegacao.Peek(); <span class="comment">// "Áudio"</span>
+
+                <span class="comment">// 4. Pop - voltar (botão Back)</span>
+                navegacao.Pop(); <span class="comment">// Remove "Áudio"</span>
+                Console.WriteLine(navegacao.Peek()); <span class="comment">// "Opções"</span>
+
+                navegacao.Pop(); <span class="comment">// Remove "Opções"</span>
+                Console.WriteLine(navegacao.Peek()); <span class="comment">// "Menu Principal"</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 14: Stack - EXERCÍCIOS -->
+        <div class="slide" id="slide18">
+            <div class="phase-indicator">
+                <span class="phase teoria">1. Teoria</span>
+                <span class="phase exemplo">2. Exemplo</span>
+                <span class="phase exercicio active">3. EXERCÍCIOS</span>
+                <span class="phase pratica">4. Prática</span>
+            </div>
+            <h2>Stack: Exercícios</h2>
+            <div class="exercise-box">
+                <h4>Agora é com vocês! (10 minutos)</h4>
+            </div>
+            <div class="two-column">
+                <div class="tech-card">
+                    <h3>Exercício 1: Inverter String</h3>
+                    <p>Use uma Stack para inverter "JOGO" → "OGOJ"</p>
+                    <div class="code-block" style="font-size: 0.8rem;"><span class="keyword">string</span> palavra =
+                        <span class="string">"JOGO"</span>;
+                        Stack&lt;<span class="keyword">char</span>&gt; pilha = <span class="keyword">new</span>();
+                        <span class="comment">// Push cada letra...</span>
+                        <span class="comment">// Pop todas...</span>
+                    </div>
+                </div>
+                <div class="tech-card">
+                    <h3>Exercício 2: Verificar Parênteses</h3>
+                    <p>Verifique se <code>((()))</code> está balanceado.</p>
+                    <div class="code-block" style="font-size: 0.8rem;"><span class="comment">// ( → Push</span>
+                        <span class="comment">// ) → Pop</span>
+                        <span class="comment">// Final: pilha vazia = OK!</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 15: Stack - PRÁTICA NO JOGO -->
+        <div class="slide" id="slide19">
+            <div class="phase-indicator">
+                <span class="phase teoria">1. Teoria</span>
+                <span class="phase exemplo">2. Exemplo</span>
+                <span class="phase exercicio">3. Exercícios</span>
+                <span class="phase pratica active">4. PRÁTICA</span>
+            </div>
+            <h2>Stack: No Dungeon Of Algorithms</h2>
+            <div class="game-box">
+                <h4>Implementando Sistema de Undo</h4>
+                <p>Vamos criar um sistema para <span class="highlight">desfazer ações</span> do jogador!</p>
+            </div>
+            <div class="code-block"><span class="comment">// Adicionar no Player.cs</span>
+                <span class="keyword">private</span> Stack&lt;Vector2&gt; _positionHistory = <span
+                    class="keyword">new</span>();
+
+                <span class="keyword">public void</span> Move(Vector2 newPosition)
+                {
+                <span class="comment">// Salvar posição atual ANTES de mover</span>
+                _positionHistory.Push(Position);
+                Position = newPosition;
+                }
+
+                <span class="keyword">public void</span> Undo()
+                {
+                <span class="keyword">if</span> (_positionHistory.Count > <span class="number">0</span>)
+                {
+                Position = _positionHistory.Pop();
+                Console.WriteLine(<span class="string">"Undo realizado!"</span>);
+                }
+                }
+            </div>
+            <div class="exercise-box">
+                <h4>Desafio Opcional</h4>
+                <p>Adicione checagem no Game1.cs: <code>if (Keyboard.IsKeyDown(Keys.Z)) player.Undo();</code></p>
+            </div>
+        </div>
+
+        <!-- ========== BLOCO 4: QUEUE ========== -->
+
+        <!-- SLIDE 16: Queue - TEORIA -->
+        <div class="slide" id="slide20">
+            <div class="phase-indicator">
+                <span class="phase teoria active">1. TEORIA</span>
+                <span class="phase exemplo">2. Exemplo</span>
+                <span class="phase exercicio">3. Exercícios</span>
+                <span class="phase pratica">4. Prática</span>
+            </div>
+            <h2>Queue (Fila): Conceito</h2>
+            <span class="time-indicator">Tempo: 02:45 - 03:30</span>
+            <div class="theory-box">
+                <h4>FIFO = First In, First Out</h4>
+                <p>O <span class="highlight">primeiro</span> a entrar é o <span class="highlight-blue">primeiro</span> a
+                    sair. Como uma fila de banco!</p>
+            </div>
+            <div style="text-align: center; margin: 20px 0;">
+                <p style="color: #6f42c1;">FRENTE (sai) ← → TRÁS (entra)</p>
+                <div class="queue-visual">
+                    <span style="color: var(--silver);">←</span>
+                    <div class="queue-cell front">1º</div>
+                    <div class="queue-cell">2º</div>
+                    <div class="queue-cell">3º</div>
+                    <div class="queue-cell rear">4º</div>
+                    <span style="color: var(--silver);">←</span>
+                </div>
+            </div>
+            <div class="tech-card">
+                <h3>Operações - Todas O(1)!</h3>
+                <ul style="display: flex; gap: 30px; flex-wrap: wrap;">
+                    <li><span class="highlight">Enqueue</span>: adiciona no final</li>
+                    <li><span class="highlight">Dequeue</span>: remove do início</li>
+                    <li><span class="highlight">Peek</span>: ver início</li>
+                    <li><span class="highlight">Count</span>: quantidade</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- SLIDE 17: Queue - EXEMPLO -->
+        <div class="slide" id="slide21">
+            <div class="phase-indicator">
+                <span class="phase teoria">1. Teoria</span>
+                <span class="phase exemplo active">2. EXEMPLO</span>
+                <span class="phase exercicio">3. Exercícios</span>
+                <span class="phase pratica">4. Prática</span>
+            </div>
+            <h2>Queue: Exemplo Juntos</h2>
+            <div class="example-box">
+                <h4>Vamos Codificar Juntos!</h4>
+            </div>
+            <div class="code-block"><span class="keyword">using</span> System.Collections.Generic;
+
+                <span class="comment">// 1. Criar fila de jogadores esperando</span>
+                Queue&lt;<span class="keyword">string</span>&gt; fila = <span class="keyword">new</span> Queue&lt;<span
+                    class="keyword">string</span>&gt;();
+
+                <span class="comment">// 2. Enqueue - entrar na fila</span>
+                fila.Enqueue(<span class="string">"João"</span>);
+                fila.Enqueue(<span class="string">"Maria"</span>);
+                fila.Enqueue(<span class="string">"Pedro"</span>);
+
+                <span class="comment">// 3. Peek - quem é o próximo?</span>
+                Console.WriteLine(fila.Peek()); <span class="comment">// "João"</span>
+
+                <span class="comment">// 4. Dequeue - atender próximo</span>
+                <span class="keyword">string</span> atendido = fila.Dequeue(); <span class="comment">// "João"</span>
+                Console.WriteLine(<span class="string">$"Atendendo: {atendido}"</span>);
+
+                <span class="comment">// 5. Agora quem é o próximo?</span>
+                Console.WriteLine(fila.Peek()); <span class="comment">// "Maria"</span>
+                Console.WriteLine(<span class="string">$"Restam: {fila.Count}"</span>); <span class="comment">//
+                    2</span>
+            </div>
+        </div>
+
+        <!-- SLIDE 18: Queue - EXERCÍCIOS -->
+        <div class="slide" id="slide22">
+            <div class="phase-indicator">
+                <span class="phase teoria">1. Teoria</span>
+                <span class="phase exemplo">2. Exemplo</span>
+                <span class="phase exercicio active">3. EXERCÍCIOS</span>
+                <span class="phase pratica">4. Prática</span>
+            </div>
+            <h2>Queue: Exercícios</h2>
+            <div class="exercise-box">
+                <h4>Agora é com vocês! (10 minutos)</h4>
+            </div>
+            <div class="two-column">
+                <div class="tech-card">
+                    <h3>Exercício 1: Fila de Impressão</h3>
+                    <p>Simule uma fila de documentos para imprimir. Adicione 3 docs e "imprima" um por um.</p>
+                    <div class="code-block" style="font-size: 0.8rem;">Queue&lt;<span class="keyword">string</span>&gt;
+                        impressora;
+                        <span class="comment">// doc1.pdf, doc2.pdf...</span>
+                        <span class="keyword">while</span> (fila.Count > <span class="number">0</span>)
+                        <span class="comment">// Dequeue e printar</span>
+                    </div>
+                </div>
+                <div class="tech-card">
+                    <h3>Exercício 2: Hot Potato</h3>
+                    <p>5 jogadores passam a batata. A cada rodada, quem está na frente sai e vai pro final. Após N
+                        rodadas, quem está na frente perde.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 19: Queue - PRÁTICA NO JOGO -->
+        <div class="slide" id="slide23">
+            <div class="phase-indicator">
+                <span class="phase teoria">1. Teoria</span>
+                <span class="phase exemplo">2. Exemplo</span>
+                <span class="phase exercicio">3. Exercícios</span>
+                <span class="phase pratica active">4. PRÁTICA</span>
+            </div>
+            <h2>Queue: No Dungeon Of Algorithms</h2>
+            <div class="game-box">
+                <h4>Sistema de Spawn de Inimigos</h4>
+                <p>Vamos criar um sistema que <span class="highlight">spawna inimigos gradualmente</span>!</p>
+            </div>
+            <div class="code-block"><span class="comment">// Nova classe: SpawnManager.cs</span>
+                <span class="keyword">public class</span> SpawnManager
+                {
+                <span class="keyword">private</span> Queue&lt;<span class="keyword">string</span>&gt; _spawnQueue =
+                <span class="keyword">new</span>();
+
+                <span class="keyword">public void</span> ScheduleWave()
+                {
+                _spawnQueue.Enqueue(<span class="string">"Slime"</span>);
+                _spawnQueue.Enqueue(<span class="string">"Slime"</span>);
+                _spawnQueue.Enqueue(<span class="string">"Ghost"</span>);
+                }
+
+                <span class="keyword">public string</span> SpawnNext()
+                {
+                <span class="keyword">if</span> (_spawnQueue.Count > <span class="number">0</span>)
+                <span class="keyword">return</span> _spawnQueue.Dequeue();
+                <span class="keyword">return null</span>;
+                }
+                }
+            </div>
+        </div>
+
+        <!-- SLIDE 20: Comparativo -->
+        <div class="slide" id="slide24">
+            <h2>Resumo: Quando Usar?</h2>
+            <table class="operation-table">
+                <tr>
+                    <th>Estrutura</th>
+                    <th>Tipo</th>
+                    <th>Operações</th>
+                    <th>Uso no Jogo</th>
+                </tr>
+                <tr>
+                    <td>Array [,]</td>
+                    <td>Fixo</td>
+                    <td class="good">Acesso O(1)</td>
+                    <td>Tilemap, Grid</td>
+                </tr>
+                <tr>
+                    <td>List&lt;T&gt;</td>
+                    <td>Dinâmico</td>
+                    <td class="good">Add/Remove O(1)*</td>
+                    <td>Enemies, Items</td>
+                </tr>
+                <tr>
+                    <td>Stack</td>
+                    <td>LIFO</td>
+                    <td class="good">Push/Pop O(1)</td>
+                    <td>Undo, DFS</td>
+                </tr>
+                <tr>
+                    <td>Queue</td>
+                    <td>FIFO</td>
+                    <td class="good">Enqueue/Dequeue O(1)</td>
+                    <td>Spawn, BFS</td>
+                </tr>
+            </table>
+            <div class="theory-box" style="margin-top: 20px;">
+                <h4>🔮 Próximas Aulas: Grafos!</h4>
+                <p><span class="highlight">DFS</span> usa Stack para explorar labirintos. <span
+                        class="highlight-blue">BFS</span> usa Queue para caminho mais curto!</p>
+            </div>
+        </div>
+
+        <!-- SLIDE 21: Tarefa -->
+        <div class="slide title-slide" id="slide25">
+            <h1>Tarefa para Casa</h1>
+            <div style="text-align: left; max-width: 700px; margin: 25px auto;">
+                <div class="tech-card">
+                    <h3>Obrigatório</h3>
+                    <ul>
+                        <li>Terminar exercícios não finalizados</li>
+                        <li>Implementar OU Undo (Stack) OU SpawnManager (Queue) no jogo</li>
+                    </ul>
+                </div>
+                <div class="tech-card">
+                    <h3>Bônus</h3>
+                    <ul>
+                        <li>Implementar Redo (dica: segunda Stack!)</li>
+                        <li>Criar waves com tempo entre spawns</li>
+                    </ul>
+                </div>
+            </div>
+            <div style="margin-top: 30px;"><span class="badge green" style="padding: 10px 25px;">Excelente trabalho!
+                    🎮</span></div>
+        </div>
+    </div>
+
+    <div class="nav">
+        <button class="nav-btn" onclick="prevSlide()">← Anterior</button>
+        <button class="nav-btn" onclick="nextSlide()">Próximo →</button>
+    </div>
+
+    <script>
+        let currentSlide = 1;
+        const totalSlides = document.querySelectorAll('.slide').length;
+        function showSlide(n) {
+            document.querySelectorAll('.slide').forEach(s => s.classList.remove('active'));
+            if (n > totalSlides) currentSlide = 1;
+            if (n < 1) currentSlide = totalSlides;
+            document.getElementById(`slide${currentSlide}`).classList.add('active');
+            document.getElementById('slideCounter').textContent = `${currentSlide} / ${totalSlides}`;
+            document.getElementById('progressBar').style.width = `${(currentSlide / totalSlides) * 100}%`;
+        }
+        function nextSlide() { currentSlide++; showSlide(currentSlide); }
+        function prevSlide() { currentSlide--; showSlide(currentSlide); }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') nextSlide();
+            else if (e.key === 'ArrowLeft') prevSlide();
+        });
+        showSlide(currentSlide);
+    </script>
+</body>
+
+</html>

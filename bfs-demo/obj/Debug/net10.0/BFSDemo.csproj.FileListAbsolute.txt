@@ -1,0 +1,15 @@
+/Users/lucaslopes/TopDownGame/bfs-demo/bin/Debug/net10.0/BFSDemo
+/Users/lucaslopes/TopDownGame/bfs-demo/bin/Debug/net10.0/BFSDemo.deps.json
+/Users/lucaslopes/TopDownGame/bfs-demo/bin/Debug/net10.0/BFSDemo.runtimeconfig.json
+/Users/lucaslopes/TopDownGame/bfs-demo/bin/Debug/net10.0/BFSDemo.dll
+/Users/lucaslopes/TopDownGame/bfs-demo/bin/Debug/net10.0/BFSDemo.pdb
+/Users/lucaslopes/TopDownGame/bfs-demo/obj/Debug/net10.0/BFSDemo.GeneratedMSBuildEditorConfig.editorconfig
+/Users/lucaslopes/TopDownGame/bfs-demo/obj/Debug/net10.0/BFSDemo.AssemblyInfoInputs.cache
+/Users/lucaslopes/TopDownGame/bfs-demo/obj/Debug/net10.0/BFSDemo.AssemblyInfo.cs
+/Users/lucaslopes/TopDownGame/bfs-demo/obj/Debug/net10.0/BFSDemo.csproj.CoreCompileInputs.cache
+/Users/lucaslopes/TopDownGame/bfs-demo/obj/Debug/net10.0/BFSDemo.sourcelink.json
+/Users/lucaslopes/TopDownGame/bfs-demo/obj/Debug/net10.0/BFSDemo.dll
+/Users/lucaslopes/TopDownGame/bfs-demo/obj/Debug/net10.0/refint/BFSDemo.dll
+/Users/lucaslopes/TopDownGame/bfs-demo/obj/Debug/net10.0/BFSDemo.pdb
+/Users/lucaslopes/TopDownGame/bfs-demo/obj/Debug/net10.0/BFSDemo.genruntimeconfig.cache
+/Users/lucaslopes/TopDownGame/bfs-demo/obj/Debug/net10.0/ref/BFSDemo.dll
